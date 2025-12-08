@@ -8,7 +8,8 @@ import java.util.function.Function;
  * set membership with the possibility of false positives.
  */
 public class BloomFilter<T> {
-    // TODO: Add necessary fields here!
+    private int numBits;
+    private List<Function<T, Integer>> hashes;
 
     /**
      * Constructs a new Bloom Filter with the given number of bits and hash functions.
@@ -16,12 +17,15 @@ public class BloomFilter<T> {
      * @param hashes the list of hash functions utilized by the filter
      */
     public BloomFilter(int numBits, List<Function<T, Integer>> hashes) {
-        // TODO: implement me!
+        this.numBits = numBits;
+        this.hashes = hashes;
     }
 
     /** @param item the item to add to the Bloom Filter */
     public void add(T item) {
-        // TODO: implement me!
+        for (int i = 0; i < hashes.size(); i++){
+            hashes.get(i).apply(item);
+        }
     }
 
     /**
@@ -30,7 +34,10 @@ public class BloomFilter<T> {
      * it is definitely not in the filter.
      */
     public boolean contains(T item) {
-        // TODO: implement me!
-        return false;
+        for (int i = 0; i < hashes.size(); i++){
+            if(hashes.get(i).equals(item)){
+                return true;
+            }
+        } return false;
     }
 }
