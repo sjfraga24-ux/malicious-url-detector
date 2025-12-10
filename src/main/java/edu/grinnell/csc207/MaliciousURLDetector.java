@@ -1,8 +1,17 @@
 package edu.grinnell.csc207;
+import java.util.concurrent.ThreadLocalRandom;
 
 import java.io.FileNotFoundException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.function.Function;
+
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
+import com.google.common.hash.*;
 
 /**
  * A simple malicious URL detector program that utilizes a Bloom Filter and a
@@ -20,8 +29,19 @@ public class MaliciousURLDetector {
      * @return a list of <code>num</code> string hash functions
      */
     public static List<Function<String, Integer>> makeStringHashFunctions(int num) {
-        // TODO: implement me!
-        return null;
+        List<Function<String, Integer>> lst = new ArrayList<Function<String, Integer>>();
+        while (num > 0){
+            int x = ThreadLocalRandom.current().nextInt();
+            HashFunction hf = Hashing.murmur3_128(x);
+            num--;
+            Function<String, Integer> n = (String input)-> {
+                
+                return hashString(input,Charset.defaultCharset());
+            };
+            // HashCode code = Hashing.hashString(input,Charset.defaultCharset());
+            lst.add(n);
+            return lst;
+        }
     }
 
     /**
@@ -29,10 +49,23 @@ public class MaliciousURLDetector {
      * @param numHashFunctions the number of hash functions to use
      * @return a Bloom filter for detecting malicious URLs.
      */
-    public static BloomFilter<String> makeURLFilter(
-            int numBits, int numHashFunctions) throws FileNotFoundException {
-        // TODO: implement me!
-        return null;
+    public static BloomFilter<String> makeURLFilter(int numBits, int numHashFunctions) throws FileNotFoundException {
+        Scanner scan = new Scanner (DATA_PATH);
+        scan.useDelimiter(",");
+        List<Function<String, Integer>> lst = makeStringHashFunctions(numHashFunctions);
+        while (scan.hasNext ()){
+            String str = scan.next();
+            String type = scan.next();
+            if(!type.equals("benign")){
+                for (int i = 0; i < lst.size (); i++){
+                    lst.get(i).apply(str);
+                }
+            }
+            
+        }
+
+        BloomFilter<String> bloom = new BloomFilter<String>(numBits, lst);
+        return bloom;
     }
 
     /**
@@ -45,7 +78,18 @@ public class MaliciousURLDetector {
             System.err.println("Usage: java MaliciousURLDetector <numBits> <numHashFunctions>");
             return;
         }
+        BloomFilter<String> data = makeURLFilter(Integer.parseInt(args[0]), Integer.parseInt(args[1]));
+        Scanner scan = new Scanner(System.in);
+        String str = "";
+        boolean running = true;
+        while(running){
+            str = scan.next ();
+            if (str.equals ("exit")){
+                running = false;
+            } else {
+                System.out.println (data.contains(str));
+            }
+        }
 
-        // TODO: implement me!
     }
 }
